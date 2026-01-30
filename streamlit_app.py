@@ -20,6 +20,7 @@ if "chat_history" not in st.session_state:
 
 if "interview_state" not in st.session_state:
     st.session_state.interview_state = InterviewState(
+        name="Иван",
         position="Data Analyst",
         target_grade="Junior",
         experience="Почти год опыта с SQL, Python, Excel"

@@ -5,7 +5,7 @@ if st.button("⏹️ Завершить интервью"):
     st.session_state.interview_state.stop_interview = True
     st.rerun()
 
-from MultiAgentSystems.multi_agent_systems import (
+from multi_agent_systems import (
     InterviewState,
     observer_agent,
     interviewer_agent,

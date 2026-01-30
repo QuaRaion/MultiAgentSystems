@@ -28,6 +28,7 @@ class Turn(BaseModel):
     internal_thoughts: str
 
 class InterviewState(BaseModel):
+    name: str
     position: str
     target_grade: str
     experience: str
@@ -229,10 +230,11 @@ simulated_candidate_agent = SimulatedCandidateAgent()
 
 def greeting_node(state: GraphState) -> GraphState:
     greeting = (
-        f"Привет! Ты претендуешь на позицию "
+        f"Привет {state['interview_state'].name}! Ты претендуешь на позицию "
         f"{state['interview_state'].target_grade} {state['interview_state'].position}. "
         f"Расскажи про себя и про свой опыт."
     )
+    print('\n\n'+greeting+'\n\n')
     state['current_interviewer_message'] = greeting
     return state
 
@@ -250,7 +252,7 @@ def candidate_node(state: GraphState) -> GraphState:
     if interviewer_msg is None:
         return state
     
-    user_message = input()
+    user_message = input('Candidate: ')
     
     if "стоп" in user_message.lower() or "exit" in user_message.lower():
         state['current_user_message'] = "стоп"
@@ -267,6 +269,7 @@ def observer_node(state: GraphState) -> GraphState:
         
     try:
         observer_result = observer_agent.invoke(state['current_user_message'])
+        print('\n\n'+"Observer result:", observer_result, '\n\n')
         if not isinstance(observer_result, dict):
             observer_result = {
                 "intent": "off_topic",
@@ -300,7 +303,7 @@ def interviewer_node(state: GraphState) -> GraphState:
         state['current_observer_result'], 
         history
     )
-    
+    print('\n\n'+"Interviewer:", visible_message, '\n\n')
     state['current_interviewer_message'] = visible_message
     return state
 
@@ -343,6 +346,7 @@ def feedback_node(state: GraphState) -> GraphState:
     }
     
     final_feedback = feedback_agent.invoke(log)
+    print('\n\n'+"Final Feedback:\n", final_feedback, '\n\n')
     log["final_feedback"] = final_feedback
     
     filename = f"logs/interview_log_{datetime.now().isoformat()}.json"
@@ -352,7 +356,7 @@ def feedback_node(state: GraphState) -> GraphState:
     state['interview_state'].stop_interview = True
     return state
 
-def create_interview_graph(position: str, grade: str, experience: str):
+def create_interview_graph(name: str, position: str, grade: str, experience: str):
     workflow = StateGraph(GraphState)
     
     workflow.add_node("greeting", greeting_node)
@@ -382,7 +386,7 @@ def create_interview_graph(position: str, grade: str, experience: str):
     app = workflow.compile()
     
     initial_state = {
-        "interview_state": InterviewState(position=position, target_grade=grade, experience=experience),
+        "interview_state": InterviewState(name=name, position=position, target_grade=grade, experience=experience),
         "participant_name": "Махкамов Шерзод Салимович",
         "turns": [],
         "current_user_message": None,
@@ -394,6 +398,7 @@ def create_interview_graph(position: str, grade: str, experience: str):
 
 # if __name__ == "__main__":
 #     graph, initial_state = create_interview_graph(
+#         name='',
 #         position="Data Analyst",
 #         grade="Junior",
 #         experience="Почти год опыта с SQL, Python, Excel и основами мат статистики для анализа данных"
@@ -414,6 +419,7 @@ def run_interactive_interview(graph, initial_state):
 
 if __name__ == "__main__":
     graph, initial_state = create_interview_graph(
+        name='Иван',
         position="Data Analyst",
         grade="Junior",
         experience="Почти год опыта с SQL, Python, Excel"
